@@ -5,10 +5,10 @@ count: false
 
 .white[
 # Introduction to Packer Workshop
-## Build AWS Resources with Infrastructure as Code
+## Define and Create AWS AMIs
 ]
 
-![:scale 15%](https://hashicorp.github.io/field-workshops-assets/assets/logos/logo_packer.png)
+![:scale 15%](https://joetitra.github.io/field-workshops-assets/assets/logos/logo_packer.png)
 
 ???
 INSTRUCTOR GUIDE LINK: https://github.com/joetitra/field-workshops-packer/blob/main/instructor-guides/Packer_Foundations_INSTRUCTOR_GUIDE.md

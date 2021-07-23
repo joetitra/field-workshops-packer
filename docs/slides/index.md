@@ -8,7 +8,7 @@ count: false
 ## Slides for Packer field workshops
 ]
 
-![:scale 15%](https://hashicorp.github.io/field-workshops-assets/assets/logos/logo_packer.png)
+![:scale 15%](https://joetitra.github.io/field-workshops-assets/assets/logos/logo_packer.png)
 
 ???
 This is a title slide of a Remark.js slide show.
