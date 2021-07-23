@@ -37,8 +37,7 @@ layout: true
 
 .footer[
 - Copyright © 2021 Trace3 / HashiCorp
-- ![:scale 100%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_Logo_Black.svg)
-- ![:scale 100%](https://hashicorp.github.io/field-workshops-assets/assets/logos/HashiCorp_Icon_Black.svg)
+- ![:scale 100%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_HashiCorp_Logo_Black.svg)
 ]
 
 ---
