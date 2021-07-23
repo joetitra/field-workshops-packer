@@ -1,10 +1,15 @@
-name: AWS-Packer-Workshop
-class: center
+name: packer-field-workshops-slides
+class: title, shelf, no-footer, fullbleed
+background-image: url(https://joetitra.github.io/field-workshops-assets/assets/bkgs/HashiCorp-Trace3-Title-bkg.jpeg)
 count: false
-![:scale 60%](images/tf_aws.png)
-<br><br>
-# AWS Packer Workshop
+
+.white[
+# Introduction to Packer Workshop
 ## Build AWS Resources with Infrastructure as Code
+]
+
+![:scale 15%](https://hashicorp.github.io/field-workshops-assets/assets/logos/logo_packer.png)
+
 ???
 INSTRUCTOR GUIDE LINK: https://github.com/joetitra/field-workshops-packer/blob/main/instructor-guides/Packer_Foundations_INSTRUCTOR_GUIDE.md
 
@@ -15,7 +20,7 @@ If you need to change the look and feel of the slide deck just use the style.css
 HTML comments like this one will show up in the source code, but not in the slides or speaker notes.
 --->
 
-Welcome to the beginner's guide to Packer on AWS. This slide deck is written entirely in Markdown language, which means you can make edits or additions, then submit a pull request to add your changes to the main branch. To make edits to the slide deck simply fork this repository, edit the Markdown files, and submit a pull request with your changes.
+Welcome to the beginner's guide to Packer. This slide deck is written entirely in Markdown language, which means you can make edits or additions, then submit a pull request to add your changes to the main branch. To make edits to the slide deck simply fork this repository, edit the Markdown files, and submit a pull request with your changes.
 
 The Markdown content is contained in the docs/ subdirectories.
 
@@ -31,7 +36,8 @@ Instructor notes are included in plain text, narrative parts are in **bold**. Yo
 layout: true
 
 .footer[
-- Copyright © 2021 HashiCorp
+- Copyright © 2021 Trace3 / HashiCorp
+- ![:scale 100%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_Logo_Black.svg)
 - ![:scale 100%](https://hashicorp.github.io/field-workshops-assets/assets/logos/HashiCorp_Icon_Black.svg)
 ]
 
@@ -51,14 +57,6 @@ The favorite text editor question is a good ice breaker, but perhaps more import
 **There are no wrong answers to this question. Unless you say Notepad. Friends don't let friends write code in Notepad.**
 
 **If you don't have a favorite text editor, that's okay! Our cloud lab has Visual Studio Code preinstalled. VSC is a free programmer's text editor for Microsoft, and it has great Packer support. Most of this workshop will be simply copying and pasting code, so if you're not a developer don't fret. Packer is easy to learn and fun to work with.**
-
----
-name: Link-to-Slide-Deck
-# The Slide Deck
-<br><br><br>
-Follow along on your own computer at this link:
-
-### <https://git.io/JerH6>
 
 ---
 name: Table-of-Contents

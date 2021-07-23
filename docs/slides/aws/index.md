@@ -17,7 +17,8 @@ This is a title slide of a Remark.js slide show.
 layout: true
 
 .footer[
-- Copyright © 2021 HashiCorp
+- Copyright © 2021 Trace3 / HashiCorp
+- ![:scale 100%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_Logo_Black.svg)
 - ![:scale 100%](https://hashicorp.github.io/field-workshops-assets/assets/logos/HashiCorp_Icon_Black.svg)
 ]
 
