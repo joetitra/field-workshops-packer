@@ -30,7 +30,6 @@ name: packer-workshops-slides
 * They are organized by cloud.
 * Workshops for each cloud are organized by type:
   1. Packer OSS
-  1. Packer Enterprise
 
 ???
 This is a regular slide of a Remark.js slide show.
@@ -52,6 +51,7 @@ name:workshop-slides
 * https://joetitra.github.io/field-workshops-packer/slides/aws/packer-oss/index.html
 * https://joetitra.github.io/field-workshops-packer/slides/azure/packer-oss/index.html
 * https://joetitra.github.io/field-workshops-packer/slides/gcp/packer-oss/index.html
+* https://joetitra.github.io/field-workshops-packer/slides/vcenter/packer-oss/index.html
 
 ???
 The workshop slides are written in Remark.js.
