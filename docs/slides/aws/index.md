@@ -27,7 +27,6 @@ name: packer-workshops-slides
 ### This directory contains slides for Packer workshops intended for use with AWS.
 ### Workshops for each cloud are organized by type:
   1. Packer OSS
-  1. Packer Enterprise
 
 ???
 This is a regular slide of a Remark.js slide show.
