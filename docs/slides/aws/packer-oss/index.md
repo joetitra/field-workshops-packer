@@ -61,21 +61,18 @@ The favorite text editor question is a good ice breaker, but perhaps more import
 name: Table-of-Contents
 # Table of Contents
 
-1. Intro to Packer & Demo
+1. Introduction to Packer
+1. How Packer Works
 1. Packer Basics<br>
 👩‍🔬 **Lab - Setup and Basic Usage**
-1. Packer In Action: plan, apply, destroy
+1. Provision and Configure AMIs<br>
+🧪 **Lab - Provisioning with Packer**
 1. Organizing Your Packer Code<br>
-🧪 **Lab - Packer in Action**<br>
-1. Provision and Configure AWS Instances<br>
-🔬 **Lab - Provisioning with Packer**<br>
-1. Manage and Change Infrastructure State<br>
-1. Packer Cloud<br>
-⚗️ **Lab - Packer Remote State**
-
+🔬 **Lab - Advanced Packer Templating**
+1. CI/CD Integration
 
 ???
-This workshop should take roughly three hours to complete.
+This workshop should take roughly two hours to complete.
 
 **Here is our agenda for today's training. The format is simple, you'll hear a lecture and view slides on each topic, then participate in a hands-on lab about that topic. We'll alternate between lecture and lab, with a couple of breaks thrown in.**
 
@@ -90,7 +87,7 @@ We use the word chapter here, because the training should feel like a story unfo
 
 ---
 name: How-to-Provision-an-AWS-Instance
-# How to Provision an AWS Instance
+# How to Create an Amazon EBS-backed AMI
 
 Let's look at a few different ways you could provision a new AWS Instance. Before we start we'll need to gather some basic information including (but not limited to):
 
@@ -108,14 +105,24 @@ We chose the AWS Console as a starting point because most AWS users will be fami
 ---
 name: AWS-Console-Provision
 # Method 1: AWS Console (GUI)
-![:scale 70%](images/aws_provision.png)
+![:scale 70%](images/aws_provision_0.png)
+
+???
+**This is the process for custom AMI creation in AWS.**
+
+---
+
+name: AWS-Console-Provision-1
+# Method 1: AWS Console (GUI)
+![:scale 70%](images/aws_provision_1.png)
 
 ???
 **This should look familiar if you've ever used AWS. From the EC2 Panel, you click on Instances > Launch Instance, and you'll see a list of different AWS Machine Images (AMIs) you can use to provision your Instance. Some of these are provided by AWS, others are provided by third parties in the marketplace. You either search or browse for the thing you need, and click on it. Easy.**
 
 ---
+
 name: AWS-Console-Provision-2
-# Method 1: AWS Portal (GUI)
+# Method 1: AWS Console (GUI)
 ![:scale 60%](images/aws_provision_2.png)
 
 ???
@@ -124,68 +131,78 @@ name: AWS-Console-Provision-2
 It's really easy to make a big mess of things if you simply give everyone a console account and turn them loose in the cloud environment.
 
 ---
-name: CloudFormation-Templates
-class: compact
-# Method 2: CloudFormation Templates
-```json
-{
-  "AWSTemplateFormatVersion" : "2010-09-09",
 
-  "Description" : "AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample: Create an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based on the region in which the stack is run. This example creates an EC2 security group for the instance to give you SSH access. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
-
-  "Parameters" : {
-    "KeyName": {
-      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instance",
-      "Type": "AWS::EC2::KeyPair::KeyName",
-      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
-    },
-  }
-}
-```
-
-CloudFormation Templates provide a consistent and reliable way to provision AWS resources. JSON is easy for computers to read, but can be challenging for humans to edit and troubleshoot.
+name: AWS-Console-Provision-3
+# Method 1: AWS Console (GUI)
+![:scale 60%](images/aws_provision_3.png)
 
 ???
-**Which brings us to method #2, CloudFormation Templates, also known as CFTs. Have any of you used CFTs? What's that experience like?**
+**Once you've chosen your AMI, you will fill in some more details - the instance type, the VPC you want it to launch in, any associated IAM roles you want to assign it, external storage, tags, security groups... it's a long list of options! The AWS console can be handy for spinning up individual VMs and dev or test environments. The good news is that it's really easy to spin up infrastructure this way. The bad news is that it doesn't scale, and chances are that nobody is keeping track of what got built.**
 
-**CFTs are written in JSON, which stands for JavaScript Object Notation. It is an open-standard format for transmitting data between computers. And don't get me wrong, JSON is great. If you happen to be a computer. Computers are really good at reading these files full of key-value pairs and lists.**
-
-**The problem is that editing and maintaining huge JSON files is hard for humans. Because JSON is not a programming language, you'll end up writing a lot more lines of complex code that is hard to understand and change.**
-
-**CloudFormation Templates - easy for computers to read, hard for humans to troubleshoot and maintain.**
-
-We are not here to bash on CloudFormation Templates or any other JSON/YAML based provisioning tools. The simple fact is these data formats are not well suited for logical operations (if/then, for loops, etc.)
+It's really easy to make a big mess of things if you simply give everyone a console account and turn them loose in the cloud environment.
 
 ---
-name: Provision-with-Packer-2
-# Method 3: Provision with Packer
-```terraform
-resource aws_instance "web" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
-
-  tags = {
-    Name = "HelloWorld"
-  }
-}
+name: Provision-with-CLI
+# Method 2: Provision with AWS CLI
+```bash
+aws ec2 describe-images \
+    --owners amazon \
+    --filters "Name=platform,Values=linux" "Name=root-device-type,Values=ebs"
+aws ec2 run-instances \
+    --image-id ami-0abcdef1234567890 \
+    --instance-type t2.micro \
+    --count 1 \
+    --subnet-id subnet-08fc749671b2d077c \
+    --key-name MyKeyPair \
+    --security-group-ids sg-0b0384b66d7d692f9 \
+    --credit-specification CpuCredits=unlimited
+...
+#connect to instance
+#configuration instance
+#validate configurations
+#run post configuration tasks
+#clean instance
+...
+aws ec2 create-image \
+    --instance-id i-1234567890abcdef0 \
+    --name "My server" \
+    --description "An AMI for my server"
 ```
-.center[Example Packer code for building an AWS instance.]
+.center[Example pseudo code to create an AMI.]
 
 ???
-**And finally we have option #3, Packer. Packer uses a Domain Specific Language, or DSL that is designed to be both human-friendly and machine-readable. This is an example snippet of Packer code. Now watch as I flip back to the previous slide. Would you rather have to write and maintain this complex and messy JSON, or this simple, compact terraform code?**
+**This process requires individual code to find the source AMI, launch and instance from it, additional configurations, and finally creating the AMI from it.**
 
-Advance back to the previous slide to illustrate the difference between JSON and equivalent Packer.
+---
+name: Provision-with-Packer
+# Method 3: Provision with Packer
+```packer
+source "amazon-ebs" "example" {
+  ami_name      = "learn-packer-linux-aws"
+  instance_type = "t2.micro"
+  region        = "us-west-2"
+  source_ami    =  "ami-fce3c696"
+  ssh_username = "ubuntu"
+}
+```
+.center[Example Packer code for building an AMI.]
+
+???
+**Packer uses a Domain Specific Language, or DSL that is designed to be both human-friendly and machine-readable. This is an example snippet of Packer code. Would you rather have to write and maintain an entirely custom script that would rely on a series of AWS CLI commands to find your desired base AMI, launch an EC2 instance from it, configure that instance, and then convert it to an AMI.  Or would you prefer this simple, compact packer code?**
+
+Advance back to the previous slide to illustrate the difference between AWS CLI pseudo code and equivalent Packer.
 
 ---
 name: What-is-Packer
 # What is Packer?
-```terraform
-resource aws_instance "catapp" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  tags = {
-    Name = "${var.prefix}-meow"
-  }
+```packer
+source "amazon-ebs" "example" {
+  ami_name      = "learn-packer-linux-aws"
+  instance_type = "t2.micro"
+  region        = "us-west-2"
+  source_ami    =  "ami-fce3c696"
+  ssh_username = "ubuntu"
+}
 ```
 * Executable Documentation
 * Human and machine readable
@@ -199,7 +216,7 @@ resource aws_instance "catapp" {
 
 **Do any of you have a wiki or set of runbooks that contain provisioning instructions? Think for a moment about that wiki. Now I want you to imagine the date stamp, when was this thing last edited? Let's say it was four years ago. Do you think maybe something could have changed in the past four years?**
 
-**It sounds funny but the truth is your wiki is the obituary of the last known state of your infrastructure. One of the main reasons to use terraform is because it is self-documenting. The code itself explains every step required to build this infrastructure, and therefore it is always up to date.**
+**It sounds funny but the truth is your wiki is the obituary of the last known state of your infrastructure. One of the main reasons to use packer is because it is self-documenting. The code itself explains every step required to build this infrastructure, and therefore it is always up to date.**
 
 ---
 name: IaC
@@ -239,69 +256,14 @@ name: IaC2
 * Change and update existing infrastructure
 ???
 **One of the main benefits of IaC is the ability to change and update what you built. There are many tools that allow you to provision infrastructure. This is sometimes called 'Day 0' of operations. The real challenge is managing Day N. What happens when you need to alter the infrastructure you built? Maybe you need to destroy or recreate part or all of it? Are you prepared to maintain and care for this infrastructure, without causing any downtime? Because Packer is a _stateful_ tool, it can help you keep track of your infrastructure and change it with minimal impact.**
+**Add additional IaC2 slides!**
 
----
-name: IaC2
-# Infrastructure as Code Allows Us To...
-* Provide a codified workflow to create infrastructure
-* Change and update existing infrastructure
-* Safely test changes using **`terraform plan`** in dry run mode
-???
-**Do you remember that scene in the movie Jurassic Park, where Samuel L Jackson turns around and says 'hold onto your butts' as he pushes his untested code change into production? Every sysadmin has had that feeling at one time or another. I really hope this works...**
 
-**What if instead we had a way to safely test every change that went into production with a dry run? What would actually happen if I ran this code right now? Packer comes with a built in dry run mode that allows you to visualize exactly what would happen if you pushed the apply button right now. This is a valuable tool for sysadmins and operations teams who prize stability and uptime.**
 
-**Unexpected changes in the terraform plan output can be investigated _before_ they go into production.**
 
----
-name: IaC2
-# Infrastructure as Code Allows Us To...
-* Provide a codified workflow to create infrastructure
-* Change and update existing infrastructure
-* Safely test changes using **`terraform plan`** in dry run mode
-* Integrate with application code workflows (Git, CI/CD tools)
 
-???
-**Packer allows you to automate manual processes and build continuous integration or continuous delivery pipelines. Imagine you had a pipeline for creating hardened machine images. Perhaps you have another pipeline for testing your infrastructure build process. These might be chained to other CI/CD application pipelines where the application is deployed into your tested, hardened infrastructure. Think of API driven infrastructure builds, written in a simple langage everybody can use and understand.**
 
----
-name: IaC2
-# Infrastructure as Code Allows Us To...
-* Provide a codified workflow to create infrastructure
-* Change and update existing infrastructure
-* Safely test changes using **`terraform plan`** in dry run mode
-* Integrate with application code workflows (Git, CI/CD tools)
-* Provide reusable modules for easy sharing and collaboration
 
-???
-**As you expand your terraform usage, you'll have certain patterns and pieces of your infrastructure that you'd like to re-use. Maybe you want your network security to be set up a certain way, every time. Or perhaps someone wrote a great Packer config for your web application. Packer supports custom modules, which are simply packages of pre-built Packer code that others can use. You can use Packer modules to avoid repetition, enforce security, and ensure that standards are followed.**
-
----
-name: IaC2
-# Infrastructure as Code Allows Us To...
-* Provide a codified workflow to create infrastructure
-* Change and update existing infrastructure
-* Safely test changes using **`terraform plan`** in dry run mode
-* Integrate with application code workflows (Git, CI/CD tools)
-* Provide reusable modules for easy sharing and collaboration
-* Enforce security policy and organizational standards
-
-???
-**Packer Enterprise also supports policy enforcement. You can create a list of dos and do-nots for your users and ensure that people don't build things they shouldn't, or introduce unnecessary risk into your environments. For example, you may have a policy that states that servers should not be exposed to the public internet. Because all your infrastructure is stored as code, you can quickly analyze that code to see if it's breaking any of the rules, preventing the bad behavior *before* the infrastructure gets built.**
-
----
-name: IaC2
-# Infrastructure as Code Allows Us To...
-* Provide a codified workflow to create infrastructure
-* Change and update existing infrastructure
-* Safely test changes using **`terraform plan`** in dry run mode
-* Integrate with application code workflows (Git, CI/CD tools)
-* Provide reusable modules for easy sharing and collaboration
-* Enforce security policy and organizational standards
-* Enable collaboration between different teams
-
-???
-**Now that all your infrastructure is stored in a source code repository, it's very easy for multiple users and teams to collaborate on it. Developer needs a new feature? He or she can easily adjust the source code and send the change back to the operations folks for review. Packer is a universal language that is understood by both developers and operations teams.**
 
 ---
 name: IaC-Tools
@@ -320,7 +282,7 @@ name: Native-Tools
 # Native Cloud Provisioning Tools
 .center[![:scale 90%](images/clouds.png)]
 
-Each cloud has its own YAML or JSON based provisioning tool.
+Each cloud has its own unique provisioning tool.
 
 Packer can be used across *all* major cloud providers and VM hypervisors.
 
@@ -348,88 +310,18 @@ name = "${var.PilotServerName}-vm"
 
 Packer code (HCL) is easy to learn and easy to read. It is also 50-70% more compact than an equivalent JSON configuration.
 
----
-Name: Why-Packer-1
-# Why Packer?
-.center[![:scale 60%](images/1password_terraform.png)]
-
-.center[### <https://blog.1password.com/packering-1password/>]
-
 ???
-1Password did a great blog post illustrating the difference between AWS Cloudformation (JSON) and Packer.
+**ADD Why Packer**
 
-https://blog.1password.com/packering-1password/
 
-1Password were able to move their entire production infrastructure to Packer in a few short weeks. Now they can tear down and completely rebuild their production environment in a matter of hours.
 
----
-Name: Why-Packer-on-AWS
-# Why Packer on AWS?
 
-* Supports multi-cloud & hybrid infrastructure
 
-???
-**Why specifcially should you use Packer on AWS? The first reason is that Packer supports your hybrid or multi-cloud strategy. If you need to build some infrastructure on-prem, and some in AWS, Packer is a natural fit. Your technical staff only has to learn a single language to be able to provision in either environment.**
 
----
-Name: Why-Packer-on-AWS
-# Why Packer on AWS?
 
-* Supports multi-cloud & hybrid infrastructure
-* Migrate from other cloud providers
 
-???
-**Packer is also great for migrating between cloud providers. Let's say you wanted to move some workloads from AWS to AWS. The code changes in Packer would be much easier to implement than they would via CloudFormation Templates. I was able to migrate a simple demo application from one cloud to another in a few short hours, because there was almost no learning curve. Packer code looks the same no matter where you run it.**
 
----
-Name: Why-Packer-on-AWS
-# Why Packer on AWS?
 
-* Supports multi-cloud & hybrid infrastructure
-* Migrate from other cloud providers
-* Increase provisioning speed
-
-???
-**It's not unusual to see provisioning times drop from days or weeks to hours or minutes when users adopt Packer. Ineffective manual steps and change approvals can be replaced with fast code pipelines that have rigorous testing and security built right in. Now instead of waiting for days for a change request to be approved, users can self-provision their infrastructure without bottlenecks or slow approval processes.**
-
----
-Name: Why-Packer-on-AWS
-# Why Packer on AWS?
-
-* Supports multi-cloud & hybrid infrastructure
-* Migrate from other cloud providers
-* Increase provisioning speed
-* Improve efficiency
-
-???
-**Have you heard the saying 'measure twice, cut once?'? Packer forces your operations teams to be disciplined and consistent with every single build. Have a change or setting that was overlooked during the build? Now you can immediately correct that mistake inside the code, so that a particular step never gets missed again. All future builds will contain the change. This can also improve relations between developers and operations, because the contract is clear. What gets built is always defined in the code, and never left to guesswork or manual processes.**
-
----
-Name: Why-Packer-on-AWS
-# Why Packer on AWS?
-
-* Supports multi-cloud & hybrid infrastructure
-* Migrate from other cloud providers
-* Increase provisioning speed
-* Improve efficiency
-* Reduce risk
-
-???
-**Every modern IT organization has to deal with risk. It's a balancing act between security and usability. You can make it so secure nobody can use it, or on the other end you have a free for all where users can do whatever they want, but are putting the entire cloud account in jeopardy due to risky behavior. Packer allows you to reduce risk by abstracting your users away from the web UI or API. Instead we provide a safe, auditable abstraction layer that lets users get their work done in a secure and safe way, that doesn't grant unnecessary privileged access.**
-
----
-name: Live-Demo
-class: title
-# Live Demo
-
-???
-**Let's do a short demo! I'm going to show you how easy it can be to provision infrastructure in AWS. I'll do the demo on one of the lab workstations that you'll be using for this training.**
-
-**This is a workstation just like the ones you'll be using for today's workshops. I'm going to run a terraform apply command to build out the lab environment. We're actually cheating a little bit here, as we prebaked most of the environment before class to save us some time. Just like your favorite cooking show!**
-
-**You can see the results of the Packer run here in my shell. This output is showing me the URL of the application server I just built. And if we pop over here to the AWS portal you'll see all of the different parts of my lab environment.**
-
-**This is Infrastructure as code. By the end of today's training you'll be able to create your own infrastructure using Packer.**
 
 ---
 
@@ -437,9 +329,6 @@ name: Chapter-2
 class: title
 # Chapter 2
 ## Packer Basics
-
-???
-**Now that you have terraform installed and working with AWS, we can do a few dry runs before building real infrastructure. Follow along carefully, copying and pasting the commands on each slide into your shell as we go.**
 
 ---
 name: what-is-packer-oss
@@ -451,7 +340,7 @@ Packer is an open source provisioning tool.
 
 It ships as a single binary which is written in Go. Packer is cross platform and can run on Linux, Windows, or MacOS.
 
-Installing terraform is easy. You simply download a zip file, unzip it, and run it.
+Installing packer is easy. You simply download a zip file, unzip it, and run it.
 
 ---
 name: packer-command-line
@@ -465,48 +354,59 @@ The commands are the same whether you are on Linux or Windows or MacOS.
 
 Packer has subcommands that perform different actions.
 
-```terraform
+```packer
 # Basic Packer Commands
-terraform version
-terraform help
-terraform init
-terraform plan
-terraform apply
-terraform destroy
+packer version
+packer help
+packer init
+packer inspect
+packer validate
+packer build
 ```
 
 ---
 name: packer-help
 # Packer Help
 ```tex
-*$ terraform help
-Usage: terraform [-version] [-help] <command> [args]
+*$ packer --help
+Usage: packer [--version] [--help] <command> [<args>]
 ...
-Common commands:
-    apply              Builds or changes infrastructure
-    console            Interactive console for Packer interpolations
-    destroy            Destroy Packer-managed infrastructure
-    env                Workspace management
-    fmt                Rewrites config files to canonical format
-    graph              Create a visual graph of Packer resources
+Available commands are:
+    build           build image(s) from template
+    console         creates a console for testing variable interpolation
+    fix             fixes templates from old versions of packer
+    fmt             Rewrites HCL2 config files to canonical format
+    hcl2_upgrade    transform a JSON template into an HCL2 configuration
+    init            Install missing plugins or upgrade plugins
+    inspect         see components of a template
+    validate        check that a template is valid
+    version         Prints the Packer version
 ```
-Type `terraform subcommand help` to view help on a particular subcommand.
+Type `packer subcommand --help` to view help on a particular subcommand.
 ???
 **This is a good command to know. Packer help will reveal all the available subcommands.**
 
 ---
 name: packer-code
 # Packer Code
-```terraform
-resource aws_vpc "main" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "dedicated"
+```packer
+<BLOCK TYPE> "<BLOCK LABEL>" "<BLOCK LABEL>" {
+  # Block body
+  <IDENTIFIER> = <EXPRESSION> # Argument
+}
+
+source "amazon-ebs" "example" {
+  ami_name = "learn-packer-linux-aws"
+}
+
+build {
+  sources = ["source.amazon-ebs.example"]
 }
 ```
 
 Packer code is based on the [HCL2 toolkit](https://github.com/hashicorp/hcl2). HCL stands for HashiCorp Configuration Language.
 
-Packer code, or simply *terraform* is a declarative language that is specifically designed for provisioning infrastructure on any cloud or platform.
+Packer code, or simply *packer* is a declarative language that is specifically designed for provisioning infrastructure on any cloud or platform.
 
 ---
 name: main.tf
@@ -527,669 +427,34 @@ The comment ends with this symbol: */
 ]
 
 ---
-name: packer-workspaces
-# Packer Workspaces
-
-A terraform workspace is simply a folder or directory that contains terraform code.
-
-Packer files always end in either a `*.tf` or `*.tfvars` extension.
-
-Most terraform workspaces contain a minimum of three files:
-
-**main.tf** - Most of your functional code will go here.<br>
-**variables.tf** - This file is for storing variables.<br>
-**outputs.tf** - Define what is shown at the end of a terraform run.<br>
-
----
 name: packer-init
 # Packer Init
 ```tex
-*$ terraform init
+*$ packer init .
 
-Initializing provider plugins...
-- Checking for available provider plugins...
-- Downloading plugin for provider "aws" (hashicorp/aws) 2.35.0...
-...
- provider.aws: version = "~> 2.35"
-
-Packer has been successfully initialized!
+Installed plugin github.com/hashicorp/amazon v1.0.0 ...
 
 ```
-Packer fetches any required providers and modules and stores them in the .terraform directory. If you add, change or update your modules or providers you will need to run init again.
+Packer fetches any required plugins and stores them in the .packer.d/plugins directory. If you add, change or update your plugins you will need to run init again.
 
 ???
-**Packer has an extendible architecture. You download the core program, terraform, then it fetches plugins and modules that are required for your code.**
+**Packer has an extendible architecture. You download the core program, packer, then it fetches plugins that are required for your code.**
 
----
-name: packer-plan
-# Packer Plan
-```tex
-*$ terraform plan
-An execution plan has been generated and is shown below.
-Packer will perform the following actions:
-  # aws_vpc.main will be created
-  + resource "aws_vpc" "main" {
-      + arn                              = (known after apply)
-      + cidr_block                       = "10.0.0.0/16"
-      ...
-      + instance_tenancy                 = "dedicated"
-    }
-```
-Preview your changes with `terraform plan` before you apply them.
 
-???
-**`terraform plan` is a dry run command. We're not actually building anything yet, Packer is just telling is what it would do if we ran it for real.**
 
----
-name: defining-variables
-# Where are Variables Defined?
-Packer variables are placed in a file called *variables.tf*. Variables can have default settings. If you omit the default, the user will be prompted to enter a value. Here we are *declaring* the variables that we intend to use.
 
-```tex
-variable "prefix" {
-  description = "This prefix will be included in the name of most resources."
-}
 
-variable "instance_tenancy" {
-  description = "A tenancy option for instances launched into the VPC."
-* default     = "dedicated"
-}
-```
 
-???
-**If you're curious where all these variables are defined, you can see them all in the _variables.tf_ file. Here we are simply defining all the available settings, and optionally declaring some default values. These defaults are what terraform will use if your user doesn't override them with their own settings.**
 
-Q. Where could you override these defaults?<br>
-A. In the terraform.tfvars file, or optionally on the command line or via environment variables. The most common approach is to use a tfvars file.
 
----
-name: setting-variables
-class: col-2
-# How are Variables Set?
-Once you have some variables defined, you can set and override them in different ways. Here is the level of precedence for each method.
 
-This list goes from highest precedence (1) to lowest (5).
-
-<br>
-```tex
-1. Command line flag - run as a
-   command line switch
-2. Configuration file - set in
-   your terraform.tfvars file
-3. Environment variable - part of
-   your shell environment
-4. Default Config - default value
-   in variables.tf
-5. User manual entry - if not
-   specified, prompt the user
-   for entry
-```
----
-name: lab-exercise-0
-# 👩‍💻 Getting Started with Instruqt
-<br><br>
-[Instruqt](https://instruqt.com) is the HashiCorp training platform. Visit the link below for a short tutorial, or if you're already familiar with Instruqt you can skip to the next slide.
-
-[https://instruqt.com/instruqt/tracks/getting-started-with-instruqt](https://instruqt.com/instruqt/tracks/getting-started-with-instruqt)
-
----
-name: lab-exercise-1
-# 👩‍💻 Lab Exercise: Packer Basics
-<br><br>
-In this lab you'll learn how to set up your editor, use the Packer command line tool, integrate with AWS, and do a few dry runs with different settings.
-
-Your instructor will provide the URL for the lab environment.
-
-🛑 **STOP** after you complete the second quiz.
----
-name: chapter-2-review
-# 📝 Chapter 2 Review
-.contents[
-In this chapter we:
-* Used the **`terraform init`** command
-* Ran the **`terraform plan`** command
-* Learned about variables
-* Set our tenancy and prefix
-]
-
----
-name: Chapter-3
-class: title
-# Chapter 3
-## Packer in Action
-
-???
-**In this chapter we'll actually build real infrastructure using our sample code.**
-
----
-name: anatomy-of-a-resource
-# Anatomy of a Resource
-Every terraform resource is structured exactly the same way.
-
-```terraform
-resource type "name" {
-  parameter = "foo"
-  parameter2 = "bar"
-  list = ["one", "two", "three"]
-}
-```
-
-**resource** = Top level keyword<br>
-**type** = Type of resource. Example: `aws_instance`.<br>
-**name** = Arbitrary name to refer to this resource. Used internally by terraform. This field *cannot* be a variable.
-
-???
-Everything else you want to configure within the resource is going to be sandwiched between the curly braces. These can include strings, lists, and maps.
-
----
-name: provider-block
-# Packer Provider Configuration
-The terraform core program requires at least one provider to build anything.
-
-You can manually configure which version(s) of a provider you would like to use. If you leave this option out, Packer will default to the latest available version of the provider.
-
-```hcl
-provider "aws" {
-  version = "=2.35.0"
-}
-```
-
----
-name: provider-versioning
-# Versioning Operators
-
-```tex
-- = (or no operator): exact version equality
-- !=: version not equal
-- \>, >=, <, <=: version comparison
-- ~>: pessimistic constraint, constraining both the oldest and newest
-version allowed. ~> 0.9 is equivalent to >= 0.9, < 1.0, and ~> 0.8.4
-is equivalent to >= 0.8.4, < 0.9
-```
-Re-usable modules should constrain only the minimum allowed version, such as >= 2.35.0.
-
-???
-**This specifies the earliest version that the module is compatible with while leaving the user of the module flexibility to upgrade to newer versions of Packer without altering the module.**
-
----
-
-name: packer-apply
-class: compact
-# Packer Apply
-```tex
-*$ terraform apply
-An execution plan has been generated and is shown below.
-
-Packer will perform the following actions:
-  # aws_vpc.main will be created
-  + resource "aws_vpc" "main" {
-      + cidr_block                       = "10.0.0.0/16"
-      + instance_tenancy                 = "dedicated"
-        ...
-      + tags                             = {
-          + "Name" = "main"
-        }
-    }
-
-Plan: 1 to add, 0 to change, 0 to destroy.
-```
-`terraform apply` runs a plan and then if you approve, it applies the changes.
-
----
-name: packer-destroy
-class: compact
-# Packer Destroy
-```tex
-*$ terraform destroy
-An execution plan has been generated and is shown below.
-
-Packer will perform the following actions:
-  # aws_vpc.main will be destroyed
-  - resource "aws_vpc" "main" {
-      - cidr_block                       = "10.0.0.0/16" -> null
-      - instance_tenancy                 = "dedicated" -> null
-        ...
-      - tags                             = {
-          - "Name" = "main"
-        } -> null
-    }
-
-Plan: 0 to add, 0 to change, 1 to destroy.
-```
-`terraform destroy` does the opposite. If you approve, your infrastructure is destroyed.
-???
-**Packer can just as easily destroy infrastructure as create it. With great power comes great responsibility!**
-
----
-name: packer-fmt
-# Packer Format
-Packer comes with a built in code formatter/cleaner. It can make all your margins and list indentation neat and tidy. Beauty works better.
-
-```tex
-terraform fmt
-```
-
-Simply run it in a directory containing *.tf files and it will tidy up your code for you.
-
----
-
-name: Data-Sources
-class: compact
-# Packer Data Sources
-
-```terraform
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  owners = ["099720109477"] # Canonical
-}
-```
-Data sources are a way of querying a provider to return an existing resource, so that we can access its parameters for our own use.
-
----
-
-name: dependency-mapping
-class: compact
-# Packer Dependency Mapping
-Packer can automatically keep track of dependencies for you. Look at the two resources below. Note the highlighted lines in the aws_instance resource. This is how we tell one resource to refer to another in terraform.
-
-```terraform
-resource aws_key_pair "my-keypair" {
-  key_name   = "my-keypair"
-  public_key = file(var.public_key)
-}
-
-resource "aws_instance" "web" {
-* ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
-* key_name      = aws_key_pair.my-keypair.name
-```
-???
-**Apart from the SSH keypair, you can also see how we reference the data source block from the previous slide. Flick back to the previous slide to show the relationship.**
-
----
-name: organizing-your-terraform
-# Organize Your Packer Code
-Packer will read any file in your workspace that ends in a `.tf` extension, but the convention is to have a main.tf, variables.tf, and outputs.tf. You may add more tf files if you wish.
-
-```bash
-main.tf
-variables.tf
-outputs.tf
-```
-
-Let's take a closer look at each of these files.
-
----
-name: packer-main
-class: compact
-# The Main File
-
-The first file is called main.tf. This is where you normally store your terraform code. With larger, more complex infrastructure you might break this up across several files.
-
-```bash
-# This is the main.tf file.
-resource aws_vpc "main" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = var.instance_tenancy
-}
-
-resource aws_subnet "main" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.cidr_block
-  }
-}
-...
-```
-
-???
-**We've removed all the comments from this code so it will fit on the slide.**
-
----
-name: packer-variables
-class: compact
-# The Variables File
-
-The second file is called variables.tf. This is where you define your variables and optionally set some defaults.
-
-```bash
-variable "cidr_block" {
-  description = "The address space that is used within the VPC. Changing this forces a new resource to be created."
-}
-
-variable "instance_tenancy" {
-  description = "A tenancy option for instances launched into the VPC. Acceptable values are 'dedicated' and ''"
-  default     = "dedicated"
-}
-```
-
----
-name: packer-outputs
-class: compact
-# The Outputs File
-The outputs file is where you configure any messages or data you want to show at the end of a terraform apply.
-
-```terraform
-output "catapp_url" {
-  value = "http://${aws_route53_record.hashicat.fqdn}"
-}
-
-
-output "private_key" {
-  value = "${tls_private_key.hashicat.private_key_pem}"
-}
-```
-
-???
-**This bit here with the EOF is an example of a HEREDOC. It allows you store multi-line text in an output.**
-
----
-name: tf-dependency-graph
-class: img-right
-# Packer Dependency Graph
-.center[![:scale 100%](images/blast_radius_graph_1.png)]
-
-The terraform resource graph visually depicts dependencies between resources.
-
-The region and prefix variables are required to create the resource group, which is in turn required to build the virtual network.
-
-???
-This is a good spot to talk a bit about how the dependency graph gets formed.
-
----
-name: lab-exercise-2a
-# 👩‍💻 Lab Exercise: Packer in Action
-Let's use Packer to build, manage, and destroy AWS resources. This is a three part lab. In part one you'll build the HashiCat application stack.
-
-Your instructor will provide the URL for the second lab environment. Bookmark it for easy reference.
-
-You will need to set up your workstation again in the first challenge. This is expected as we create a new instance for each lab.
-
-🛑 **STOP** after you complete the third quiz.
-
-???
-**We will explore the Packer Graph together once everyone has completed the lab. Once you have the graph running in your instruqt lab stop there.**
-
----
-name: chapter-3-review
-# 📝 Chapter 3 Review
-
-In this chapter we:
-* Learned about Packer resources
-* Ran terraform plan, graph, apply and destroy
-* Learned about dependencies
-* Viewed a graph of the lab
-* Looked at main.tf, variables.tf and outputs.tf
-* Built the Meow World application
-
----
-name: Chapter-4
-class: title
-# Chapter 4
-## Provision and Configure AWS Instances
-
----
-name: intro-to-provisioners
-# Using Packer Provisioners
-Once you've used Packer to stand up a virtual machine or container, you may wish to configure your operating system and applications. This is where provisioners come in. Packer supports several different types of provisioners including: Bash, Powershell, Chef, Puppet, Ansible, and more.
-
-.center[https://www.terraform.io/docs/provisioners/index.html]
-
-???
-**Packer works hand-in-hand with these other configuration management tools to install packages, configure applications and change OS settings inside of a virtual machine or container.**
-
----
-name: file-provisioner
-class: compact
-# The File Provisioner
-The Packer file provisioner copies files onto the remote machine.
-
-```terraform
-provisioner "file" {
-  source        = "files/"
-  destination   = "/home/${var.admin_username}/"
-
-  connection {
-    type        = "ssh"
-    user        = var.username
-    private_key = file(var.ssh_key)
-    host        = ${self.ip}
-  }
-}
-```
-
-Note the *connection* block of code inside the provisioner block. The file provisioner supports both SSH and WinRM connections.
-
-???
-SSH for linux, WinRM for your windows machines.
-
----
-name: remote-exec-provisioner
-class: compact
-# The Remote Exec Provisioner
-The remote exec provisioner allows you to execute scripts or other programs on the target host. If it's something you can run unattended (for example, a software installer), then you can run it with remote exec.
-
-```terraform
-provisioner "remote-exec" {
-  inline = [
-    "sudo chown -R ${var.admin_username}:${var.admin_username} /var/www/html",
-    "chmod +x *.sh",
-    "PLACEHOLDER=${var.placeholder} WIDTH=${var.width} HEIGHT=${var.height} PREFIX=${var.prefix} ./deploy_app.sh",
-  ]
-...
-}
-```
-
-In this example we're running a few commands to change some permissions and ownership, and to run a script with some enviroment variables.
-
-???
-Local exec and remote exec can be used to trigger Puppet or Ansible runs. We do have a dedicated chef provisioner as well.
-
----
-name: puppet-chef-ansible
-class: compact
-# Packer & Config Management Tools
-.center[![:scale 50%](images/cpa.jpg)]
-
-Packer works well with common config management tools like Chef, Puppet or Ansible.
-
-Official Chef Packer provisioner:<br>
-https://www.terraform.io/docs/provisioners/chef.html
-
-Run Puppet with 'local-exec':<br>
-https://www.terraform.io/docs/provisioners/local-exec.html
-
-Packer and Ansible - Better Together:<br>
-https://github.com/scarolan/ansible-terraform
-
----
-name: provisioner-tips
-# Packer Provisioner Tips
-Packer provisioners like remote-exec are great when you need to run a few simple commands or scripts. For more complex configuration management you'll want a tool like Chef or Ansible.
-
-Provisioners only run the first time a Packer run is executed. In this sense, they are not idempotent. If you need ongoing state management of VMs or servers that are long-lived, we recommend using a config management tool.
-
-On the other hand, if you want immutable infrastructure you should consider using our [Packer](https://packer.io) tool.
-
----
-name: lab-exercise-2b
-# 👩‍💻 Lab Exercise: Provisioners, Variables and Outputs
-In part two of the lab we'll use a provisioner to install a new software package. We will also explore variables and outputs.
-
-Return to the training lab and continue where you left off.
-
-🛑 **STOP** after you complete the fourth quiz.
-
----
-name: chapter-4-review
-# 📝 Chapter 4 Review
-.contents[
-In this chapter we:
-* Learned about Packer Provisioners
-* Explored the **file** and **remote-exec** provisioners
-* Rebuilt our web server with a new provisioning step
-]
-
----
-name: Chapter-5
-class: title
-# Chapter 5
-## Packer State
-
----
-name: packer-state
-class: compact
-# Packer State
-Packer is a _stateful_ application. This means that it keeps track of everything you build inside of a **state file**. You may have noticed the terraform.tfstate and terraform.tfstate.backup files that appeared inside your working directory. The state file is Packer's source of record for everything it knows about.
-
-```json
-{
-  "terraform_version": "0.12.7",
-  "serial": 14,
-  "lineage": "452b4191-89f6-db17-a3b1-4470dcb00607",
-  "outputs": {
-    "catapp_url": {
-      "value": "http://go-hashicat-5c0265179ccda553.workshop.aws.hashidemos.io",
-      "type": "string"
-    },
-  }
-}
-```
-
----
-name: packer-refresh
-# Packer Refresh
-
-Sometimes infrastructure may be changed outside of Packer's control.
-
-The state file represents the *last known* state of the infrastructure. If you'd like to check and see if the state file still matches what you built, you can use the **terraform refresh** command.
-
-Note that this does *not* update your infrastructure, it simply updates the state file.
-
-```bash
-terraform refresh
-```
-
----
-name: change-existing-infra
-class: compact
-# Changing Existing Infrastructure
-
-Whenever you run a plan or apply, Packer reconciles three different data sources:
-
-1.  What you wrote in your code
-2.  The state file
-3.  What actually exists
-
-Packer does its best to add, delete, change, or replace existing resources based on what is in your *.tf files. Here are the four different things that can happen to each resource during a plan/apply:
-
-```tex
-+   create
--   destroy
--/+ replace
-~   update in-place
-```
-
----
-name: state-quiz
-class: compact
-# Packer State Quiz
-| Configuration           | State                   | Reality                 | Operation |
-| ----------------------- | ----------------------- | ----------------------- |:---------:|
-| aws_instance |                         |                         |    ???    |
-| aws_instance | aws_instance |                         |    ???    |
-| aws_instance | aws_instance | aws_instance |    ???    |
-|                         | aws_instance | aws_instance |    ???    |
-|                         |                         | aws_instance |    ???    |
-|                         | aws_instance |                         |    ???    |
-
-What happens in each scenario? Discuss.
-
----
-name: state-quiz-answers
-class: compact
-# Packer State Quiz
-| Configuration           | State                   | Reality                 | Operation    |
-| ----------------------- | ----------------------- | ----------------------- |:------------:|
-| aws_instance |                         |                         | create       |
-| aws_instance | aws_instance |                         | create       |
-| aws_instance | aws_instance | aws_instance | no-op        |
-|                         | aws_instance | aws_instance | delete       |
-|                         |                         | aws_instance | no-op        |
-|                         | aws_instance |                         | update state |
-
-What happens in each scenario? Discuss.
-
----
-name: Chapter-6
-class: title
-# Chapter 6
-## Packer Cloud
-
----
-name: packer-cloud
-class: img-right
-# Packer Cloud
-##### Packer Cloud is a free to use SaaS application that provides the best workflow for writing and building infrastructure as code with Packer.
-![Packer Cloud](https://www.terraform.io/assets/images/packer-overview/automate-the-provisioning-lifecycle@4x-5cc6a17f.png)
-
-* State storage and management
-* Web UI for viewing and approving Packer runs
-* Private module registry
-* Version Control System (VCS) integration
-* CLI, API or GUI driven actions
-* Notifications for run events
-* Full HTTP API for automation
-
----
-name: tfcloud-vs-tfe
-class: compact
-# Packer Cloud or Packer Enterprise?
-**[Packer Cloud](https://app.terraform.io/signup)** is a hosted application that provides features like remote state management, API driven runs, policy management and more. Many users prefer a cloud-based SaaS solution because they don't want to maintain the infrastructure to run it.
-
-**[Packer Cloud for Business](https://www.hashicorp.com/contact-sales/packer)** utilizes the same hosted environment as Packer Cloud, but you get the features more applicable to larger teams.  Single Sign-on, Audit Logging, and the ability to Packer on-prem resources from the cloud.
-
-**[Packer Enterprise](https://www.hashicorp.com/go/packer-enterprise)** is the same application, but it runs in your own cloud environment or data center. Some users require more control over the Packer Cloud application, or wish to run it in restricted networks behind corporate firewalls.
-
-The feature list for these offerings is nearly identical. We will be using Packer Cloud accounts for our lab exercises today.
-
----
-name: packer-cloud-remote-state
-# Packer Remote State
-By default Packer stores its state file in the workspace directory on your laptop or workstation. This is ok for development and experimentation, but in a production environment you need to protect and store the state file safely.
-
-Packer has an option to store and secure your state files remotely. Packer Cloud accounts now offer unlimited state file storage even for open source users.
-
-All state files are encrypted (using HashiCorp Vault) and stored securely in your Packer Cloud account. You'll never have to worry about losing or deleting your state file again.
-
----
-name: execution-mode
-# Packer Cloud Execution Modes
-
-**Local Execution** - Packer commands run on your laptop or workstation and all variables are configured locally. Only the terraform state is stored remotely.
-
-**Remote Execution** - Packer commands are run in a Packer Cloud container environment. All variables are stored in the remote workspace. Code can be stored in a Version Control System repository. Limited to 1 concurrent run for free tier users.
-
----
-name: lab-exercise-2c
-# 👩‍💻 Lab Exercise: Packer Cloud
-In the final part of the second lab we'll create a free Packer Cloud account and enable remote storage of our state file.
-
-Return to the training lab and continue where you left off.
 
 ---
 name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![HashiCorp Employees - 2019](https://storage.googleapis.com/instruqt-hashicorp-tracks/packer-shared/hashicorp_employees.jpg)
+![Trace3 / HashiCorp](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_HashiCorp_Logo_Black.svg)
 
 ---
 name: additional-resources
