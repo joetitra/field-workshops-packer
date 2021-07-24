@@ -453,7 +453,7 @@ If you add, change or update your plugins you will need to run init again.
 ---
 name: the-end
 .center[
-![:scale 80%](images/Trace3_HashiCorp_Logo_Black.png)
+![:scale 40%](images/Trace3_HashiCorp_Logo_Black.png)
 # Congratulations, you completed the workshop!
 ]
 
