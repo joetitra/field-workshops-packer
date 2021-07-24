@@ -452,10 +452,10 @@ If you add, change or update your plugins you will need to run init again.
 
 ---
 name: the-end
-class: img-caption
-
-# Congratulations, you completed the workshop!
 ![:scale 20%](images/Trace3_HashiCorp_Logo_Black.png)
+.center[
+# Congratulations, you completed the workshop!
+]
 
 ---
 name: additional-resources
