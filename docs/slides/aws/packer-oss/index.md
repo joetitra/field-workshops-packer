@@ -146,6 +146,7 @@ It's really easy to make a big mess of things if you simply give everyone a cons
 ---
 name: Provision-with-CLI
 # Method 2: Provision with AWS CLI
+.small[
 ```bash
 aws ec2 describe-images \
     --owners amazon \
@@ -170,6 +171,7 @@ aws ec2 create-image \
     --name "My server" \
     --description "An AMI for my server"
 ```
+]
 .center[Example pseudo code to create an AMI.]
 
 ???
@@ -393,6 +395,7 @@ Type `packer subcommand --help` to view help on a particular subcommand.
 ---
 name: packer-code
 # Packer Code
+.medium[
 ```packer
 <BLOCK TYPE> "<BLOCK LABEL>" "<BLOCK LABEL>" {
   # Block body
@@ -403,7 +406,7 @@ source "amazon-ebs" "example" {
   ami_name = "learn-packer-linux-aws"
 }
 ```
-
+]
 Packer code is based on the [HCL2 toolkit](https://github.com/hashicorp/hcl2). HCL stands for HashiCorp Configuration Language.
 
 Packer code, or simply *packer* is a declarative language that is specifically designed for provisioning infrastructure on any cloud or platform.
@@ -455,7 +458,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![:scale 60%](images\Trace3_HashiCorp_Logo_Black.png)
+![:scale 20%](images\Trace3_HashiCorp_Logo_Black.png)
 
 ---
 name: additional-resources
