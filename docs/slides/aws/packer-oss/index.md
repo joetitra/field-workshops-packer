@@ -455,7 +455,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![:scale 60%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_HashiCorp_Logo_Black.svg)
+![:scale 60%](images\Trace3_HashiCorp_Logo_Black.png)
 
 ---
 name: additional-resources
