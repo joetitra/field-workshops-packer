@@ -327,7 +327,7 @@ class: title
 name: what-is-packer-oss
 class: img-left
 # What is Packer?
-![:scale 60%](images\Packer_VerticalLogo_FullColor.png)
+![:scale 60%](images/Packer_VerticalLogo_FullColor.png)
 
 Packer is an open source provisioning tool.
 
@@ -455,7 +455,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![Trace3 / HashiCorp](images/Trace3_HashiCorp_Logo_Black.png)]
+![:scale 60%](images/Trace3_HashiCorp_Logo_Black.png)
 
 ---
 name: additional-resources
