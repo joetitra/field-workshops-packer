@@ -403,10 +403,11 @@ source "amazon-ebs" "example" {
   ami_name = "learn-packer-linux-aws"
 }
 ```
+.medium[
 Packer code is based on the [HCL2 toolkit](https://github.com/hashicorp/hcl2). HCL stands for HashiCorp Configuration Language.
 
 Packer code, or simply *packer* is a declarative language that is specifically designed for provisioning infrastructure on any cloud or platform.
-
+]
 ---
 name: main.tf
 # Packer Comments
