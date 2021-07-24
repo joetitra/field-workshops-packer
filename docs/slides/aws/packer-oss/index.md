@@ -147,6 +147,7 @@ It's really easy to make a big mess of things if you simply give everyone a cons
 name: Provision-with-CLI
 # Method 2: Provision with AWS CLI
 ```bash
+.small[
 aws ec2 describe-images \
     --owners amazon \
     --filters "Name=platform,Values=linux" "Name=root-device-type,Values=ebs"
@@ -169,6 +170,7 @@ aws ec2 create-image \
     --instance-id i-1234567890abcdef0 \
     --name "My server" \
     --description "An AMI for my server"
+]
 ```
 .center[Example pseudo code to create an AMI.]
 
@@ -455,7 +457,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![:scale 10%](images/Trace3_HashiCorp_Logo_Black.png)
+![:scale 90%](images/Trace3_HashiCorp_Logo_Black.png)
 
 ---
 name: additional-resources
