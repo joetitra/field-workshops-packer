@@ -455,7 +455,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-.center[![:scale 60%](images/Trace3_HashiCorp_Logo_Black.png)]
+![Trace3 / HashiCorp](images/Trace3_HashiCorp_Logo_Black.png)
 
 ---
 name: additional-resources
