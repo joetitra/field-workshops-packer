@@ -86,13 +86,13 @@ class: title
 We use the word chapter here, because the training should feel like a story unfolding. The instructor's job is to guide the learners through this interactive story.
 
 ---
-name: How-to-Provision-an-AWS-Instance
+name: How-to-Provision-an-AMI
 # How to Create an Amazon EBS-backed AMI
 
-Let's look at a few different ways you could provision a new AWS Instance. Before we start we'll need to gather some basic information including (but not limited to):
+Let's look at a few different ways you could provision a new AMI. Before we start we'll need to gather some basic information including (but not limited to):
 
+- Operating System (Source Image)
 - Instance Name
-- Operating System (Image)
 - VM Size
 - Geographical Location (Region)
 - Security Groups
@@ -103,9 +103,11 @@ Let's look at a few different ways you could provision a new AWS Instance. Befor
 We chose the AWS Console as a starting point because most AWS users will be familiar with it. From this familiar starting point we begin our journey...
 
 ---
-name: AWS-Console-Provision
-# Method 1: AWS Console (GUI)
+name: AWS-AMI-Creation
+# Steps to Create a New AMI
 ![:scale 70%](images/aws_provision_0.png)
+
+.center[The process to create a custom AMI in AWS.]
 
 ???
 **This is the process for custom AMI creation in AWS.**
@@ -195,15 +197,6 @@ Advance back to the previous slide to illustrate the difference between AWS CLI 
 ---
 name: What-is-Packer
 # What is Packer?
-```packer
-source "amazon-ebs" "example" {
-  ami_name      = "learn-packer-linux-aws"
-  instance_type = "t2.micro"
-  region        = "us-west-2"
-  source_ami    =  "ami-fce3c696"
-  ssh_username = "ubuntu"
-}
-```
 * Executable Documentation
 * Human and machine readable
 * Easy to learn
@@ -221,7 +214,7 @@ source "amazon-ebs" "example" {
 ---
 name: IaC
 # What is Infrastructure as Code?
-<br><br><br>
+<br><br>
 .biglist[
 Infrastructure as Code (IaC) is the process of managing and provisioning cloud infrastructure with machine-readable definition files.
 
@@ -334,7 +327,7 @@ class: title
 name: what-is-packer-oss
 class: img-left
 # What is Packer?
-![Packer](images\Packer_VerticalLogo_FullColor.png)
+![:scale 60%](images\Packer_VerticalLogo_FullColor.png)
 
 Packer is an open source provisioning tool.
 
@@ -382,6 +375,17 @@ Available commands are:
     validate        check that a template is valid
     version         Prints the Packer version
 ```
+
+---
+name: packer-help-2
+# Packer Help
+```tex
+*$ packer build --help
+Usage: packer build [options] TEMPLATE
+
+  Will execute multiple builds in parallel as defined in the template.
+  The various artifacts created by the template will be outputted.
+```
 Type `packer subcommand --help` to view help on a particular subcommand.
 ???
 **This is a good command to know. Packer help will reveal all the available subcommands.**
@@ -397,10 +401,6 @@ name: packer-code
 
 source "amazon-ebs" "example" {
   ami_name = "learn-packer-linux-aws"
-}
-
-build {
-  sources = ["source.amazon-ebs.example"]
 }
 ```
 
@@ -435,7 +435,8 @@ name: packer-init
 Installed plugin github.com/hashicorp/amazon v1.0.0 ...
 
 ```
-Packer fetches any required plugins and stores them in the .packer.d/plugins directory. If you add, change or update your plugins you will need to run init again.
+Packer fetches any required plugins and stores them in the .packer.d/plugins directory.
+If you add, change or update your plugins you will need to run init again.
 
 ???
 **Packer has an extendible architecture. You download the core program, packer, then it fetches plugins that are required for your code.**
@@ -454,7 +455,7 @@ name: the-end
 class: img-caption
 
 # Congratulations, you completed the workshop!
-![Trace3 / HashiCorp](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_HashiCorp_Logo_Black.svg)
+![:scale 60%](https://joetitra.github.io/field-workshops-assets/assets/logos/Trace3_HashiCorp_Logo_Black.svg)
 
 ---
 name: additional-resources
@@ -465,11 +466,8 @@ If you'd like to learn more about Packer on AWS try the links below:
 HashiCorp Learning Portal<br>
 https://learn.hashicorp.com/packer/
 
-Packer - Beyond the Basics with AWS<br>
-https://aws.amazon.com/blogs/apn/packer-beyond-the-basics-with-aws/
-
-Packer AWS Provider Documentation<br>
-https://www.terraform.io/docs/providers/aws/index.html
+Packer AWS Builder Documentation<br>
+https://www.packer.io/docs/builders/amazon/ebs
 
 Link to this Slide Deck<br>
 https://git.io/JerH6
