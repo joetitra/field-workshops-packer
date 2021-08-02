@@ -241,7 +241,6 @@ name: IaC2
 ???
 **...codified workflow. When you code-ify all of your manual steps, you'll gain several advantages that allow you to provision faster, with more efficiency, while reducing risk.**
 
-
 ---
 name: IaC2
 # Infrastructure as Code Allows Us To...
@@ -249,14 +248,52 @@ name: IaC2
 * Change and update existing infrastructure
 ???
 **One of the main benefits of IaC is the ability to change and update what you built. There are many tools that allow you to provision infrastructure. This is sometimes called 'Day 0' of operations. The real challenge is managing Day N. What happens when you need to alter the infrastructure you built? Maybe you need to destroy or recreate part or all of it? Are you prepared to maintain and care for this infrastructure, without causing any downtime? Because Packer is a _stateful_ tool, it can help you keep track of your infrastructure and change it with minimal impact.**
-**Add additional IaC2 slides!**
 
+---
+name: IaC2
+# Infrastructure as Code Allows Us To...
+* Provide a codified workflow to create infrastructure
+* Change and update existing infrastructure
+* Integrate with application code workflows (Git, CI/CD tools)
 
+???
+**Packer allows you to automate manual processes and build continuous integration or continuous delivery pipelines. Imagine you had a pipeline for creating hardened machine images. Perhaps you have another pipeline for testing your infrastructure build process. These might be chained to other CI/CD application pipelines where the application is deployed into your tested, hardened infrastructure. Think of API driven infrastructure builds, written in a simple langage everybody can use and understand.**
 
+---
+name: IaC2
+# Infrastructure as Code Allows Us To...
+* Provide a codified workflow to create infrastructure
+* Change and update existing infrastructure
+* Integrate with application code workflows (Git, CI/CD tools)
+* Provide reusable modules for easy sharing and collaboration
 
+???
+**As you expand your terraform usage, you'll have certain patterns and pieces of your infrastructure that you'd like to re-use. Maybe you want your network security to be set up a certain way, every time. Or perhaps someone wrote a great Packer config for your web application. Packer supports custom modules, which are simply packages of pre-built Packer code that others can use. You can use Packer modules to avoid repetition, enforce security, and ensure that standards are followed.**
 
+---
+name: IaC2
+# Infrastructure as Code Allows Us To...
+* Provide a codified workflow to create infrastructure
+* Change and update existing infrastructure
+* Integrate with application code workflows (Git, CI/CD tools)
+* Provide reusable modules for easy sharing and collaboration
+* Enforce security policy and organizational standards
 
+???
+**When coupled with Terraform's Sentinal you can enforce policies. You can create a list of dos and do-nots for your users and ensure that people don't build things they shouldn't, or introduce unnecessary risk into your environments. For example, you may have a policy that states that servers should not be exposed to the public internet. Because all your infrastructure is stored as code, you can quickly analyze that code to see if it's breaking any of the rules, preventing the bad behavior *before* the infrastructure gets built.**
 
+---
+name: IaC2
+# Infrastructure as Code Allows Us To...
+* Provide a codified workflow to create infrastructure
+* Change and update existing infrastructure
+* Integrate with application code workflows (Git, CI/CD tools)
+* Provide reusable modules for easy sharing and collaboration
+* Enforce security policy and organizational standards
+* Enable collaboration between different teams
+
+???
+**Now that all your infrastructure is stored in a source code repository, it's very easy for multiple users and teams to collaborate on it. Developer needs a new feature? He or she can easily adjust the source code and send the change back to the operations folks for review. Packer is a universal language that is understood by both developers and operations teams.**
 
 ---
 name: IaC-Tools
@@ -306,18 +343,16 @@ Packer code (HCL) is easy to learn and easy to read. It is also 50-70% more comp
 ???
 **ADD Why Packer**
 
+---
+Name: Why-Packer-1
+# Why Packer?
+DRAFT
+Add 5-6 slides plus demo
 
-
-
-
-
-
-
-
-
+???
+TBD
 
 ---
-
 name: Chapter-2
 class: title
 # Chapter 2
@@ -453,7 +488,7 @@ If you add, change or update your plugins you will need to run init again.
 ---
 name: the-end
 .center[
-![:scale 40%](images/Trace3_HashiCorp_Logo_Black.png)
+![:scale 40%](images/Trace3_HashiCorp_Logo_Black.png)<br>
 # Congratulations, you completed the workshop!
 ]
 
